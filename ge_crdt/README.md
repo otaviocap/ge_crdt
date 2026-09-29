@@ -1,6 +1,9 @@
 # GeCrdt
 
-**TODO: Add description**
+
+## References
+
+https://github.com/CBaquero/delta-enabled-crdts/
 
 ## Installation
 

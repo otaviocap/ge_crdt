@@ -1,9 +1,7 @@
 defmodule GeCrdt.Types.GCounter do
   @behaviour GeCrdt.Type
 
-  @moduledoc """
-  Grow-only counter.
-  """
+  @moduledoc "Grow-only counter."
 
   defstruct id: nil, counts: %{}
 
