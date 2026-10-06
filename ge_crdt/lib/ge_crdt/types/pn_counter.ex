@@ -10,16 +10,16 @@ defmodule GeCrdt.Types.PNCounter do
 
   def increment(target, amount \\ 1)
 
-  def increment(%__MODULE__{} = st, amount) do
-    {inc, d} = GCounter.increment(%{st.inc | id: st.id}, amount)
-    {%{st | inc: inc}, %__MODULE__{inc: d, dec: GCounter.new()}}
+  def increment(%__MODULE__{} = state, amount) do
+    {inc, d} = GCounter.increment(%{state.inc | id: state.id}, amount)
+    {%{state | inc: inc}, %__MODULE__{inc: d, dec: GCounter.new()}}
   end
 
   def decrement(target, amount \\ 1)
 
-  def decrement(%__MODULE__{} = st, amount) do
-    {dec, d} = GCounter.increment(%{st.dec | id: st.id}, amount)
-    {%{st | dec: dec}, %__MODULE__{dec: d, inc: GCounter.new()}}
+  def decrement(%__MODULE__{} = state, amount) do
+    {dec, d} = GCounter.increment(%{state.dec | id: state.id}, amount)
+    {%{state | dec: dec}, %__MODULE__{dec: d, inc: GCounter.new()}}
   end
 
   def join(%__MODULE__{} = a, %__MODULE__{} = b) do

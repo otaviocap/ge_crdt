@@ -1,6 +1,6 @@
 defmodule GeCrdt.Utils.DotContext do
   @moduledoc """
-  Autonomous causal context.
+  Causal context.
   Based on the DotContext available in the Delta Enabled CRDTs.
 
   A dot is `{replica_id, counter}`.

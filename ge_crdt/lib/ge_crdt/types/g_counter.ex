@@ -10,10 +10,10 @@ defmodule GeCrdt.Types.GCounter do
 
   def increment(target, amount \\ 1)
 
-  def increment(%__MODULE__{id: id, counts: m} = st, amount) do
-    v = Map.get(m, id, 0) + amount
+  def increment(%__MODULE__{id: id, counts: map} = state, amount) do
+    v = Map.get(map, id, 0) + amount
 
-    {%{st | counts: Map.put(m, id, v)}, %__MODULE__{counts: %{id => v}}}
+    {%{state | counts: Map.put(map, id, v)}, %__MODULE__{counts: %{id => v}}}
   end
 
   def join(%__MODULE__{} = a, %__MODULE__{} = b) do
@@ -23,7 +23,7 @@ defmodule GeCrdt.Types.GCounter do
     }
   end
 
-  def value(%__MODULE__{counts: m}), do: Enum.reduce(m, 0, fn {_, v}, acc -> acc + v end)
+  def value(%__MODULE__{counts: map}), do: Enum.reduce(map, 0, fn {_, v}, acc -> acc + v end)
 
-  def local(%__MODULE__{id: id, counts: m}), do: Map.get(m, id, 0)
+  def local(%__MODULE__{id: id, counts: map}), do: Map.get(map, id, 0)
 end
