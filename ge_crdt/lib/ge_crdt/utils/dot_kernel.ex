@@ -66,25 +66,25 @@ defmodule GeCrdt.Utils.DotKernel do
   end
 
   @doc """
-  Add `val` under a fresh dot for `id`.
+  Add `value` under a fresh dot for `id`.
   Returns `{new_kernel, delta}`.
   """
   @spec add(t(), term(), term()) :: {t(), t()}
-  def add(%__MODULE__{} = k, id, val) do
-    {dot, ctx} = DotContext.make_dot(k.ctx, id)
-    new_k = %{k | ds: Map.put(k.ds, dot, val), ctx: ctx}
-    delta = %__MODULE__{ds: %{dot => val}, ctx: DotContext.insert_dot(DotContext.new(), dot)}
+  def add(%__MODULE__{} = kernel, id, value) do
+    {dot, ctx} = DotContext.make_dot(kernel.ctx, id)
+    new_k = %{kernel | ds: Map.put(kernel.ds, dot, value), ctx: ctx}
+    delta = %__MODULE__{ds: %{dot => value}, ctx: DotContext.insert_dot(DotContext.new(), dot)}
     {new_k, delta}
   end
 
   @doc """
-  Remove all entries whose value equals `val`.
+  Remove all entries whose value equals `value`.
   Returns `{new_kernel, delta}`.
   """
   @spec remove_value(t(), term()) :: {t(), t()}
-  def remove_value(%__MODULE__{} = k, val) do
+  def remove_value(%__MODULE__{} = kernel, value) do
     {kept, removed} =
-      Enum.split_with(k.ds, fn {_dot, v} -> v != val end)
+      Enum.split_with(kernel.ds, fn {_dot, v} -> v != value end)
 
     ctx =
       Enum.reduce(removed, DotContext.new(), fn {dot, _}, acc ->
@@ -92,32 +92,32 @@ defmodule GeCrdt.Utils.DotKernel do
       end)
       |> DotContext.compact()
 
-    {%{k | ds: Map.new(kept)}, %__MODULE__{ds: %{}, ctx: ctx}}
+    {%{kernel | ds: Map.new(kept)}, %__MODULE__{ds: %{}, ctx: ctx}}
   end
 
   @doc "Remove a single dot. Returns `{new_kernel, delta}`."
   @spec remove_dot(t(), dot()) :: {t(), t()}
-  def remove_dot(%__MODULE__{} = k, dot) do
-    case Map.fetch(k.ds, dot) do
+  def remove_dot(%__MODULE__{} = kernel, dot) do
+    case Map.fetch(kernel.ds, dot) do
       {:ok, _} ->
-        {%{k | ds: Map.delete(k.ds, dot)},
+        {%{kernel | ds: Map.delete(kernel.ds, dot)},
          %__MODULE__{ds: %{}, ctx: DotContext.insert_dot(DotContext.new(), dot)}}
 
       :error ->
-        {k, new()}
+        {kernel, new()}
     end
   end
 
   @doc "Remove everything. Returns `{new_kernel, delta}`."
   @spec remove_all(t()) :: {t(), t()}
-  def remove_all(%__MODULE__{} = k) do
+  def remove_all(%__MODULE__{} = kernel) do
     ctx =
-      Enum.reduce(k.ds, DotContext.new(), fn {dot, _}, acc ->
+      Enum.reduce(kernel.ds, DotContext.new(), fn {dot, _}, acc ->
         DotContext.insert_dot(acc, dot, false)
       end)
       |> DotContext.compact()
 
-    {%{k | ds: %{}}, %__MODULE__{ds: %{}, ctx: ctx}}
+    {%{kernel | ds: %{}}, %__MODULE__{ds: %{}, ctx: ctx}}
   end
 
   @doc "Values in the kernel."
