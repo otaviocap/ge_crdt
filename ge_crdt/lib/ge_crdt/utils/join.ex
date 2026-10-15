@@ -36,8 +36,8 @@ defmodule GeCrdt.Utils.Join do
   on ties goes to the caller; here ties join payloads).
   Based on the `lexjoin` available in the Delta Enabled CRDTs
   """
-  @spec lexjoin({term(), term()}, {term(), term()}) :: {term(), term()}
-  def lexjoin({t1, _} = l, {t2, _} = r) do
+  @spec lex_join({term(), term()}, {term(), term()}) :: {term(), term()}
+  def lex_join({t1, _} = l, {t2, _} = r) do
     cond do
       l == r -> l
       t1 > t2 -> l
