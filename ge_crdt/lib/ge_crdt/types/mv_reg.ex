@@ -40,3 +40,22 @@ defmodule GeCrdt.Types.MVReg do
 
   def read(%__MODULE__{kernel: kernel}), do: kernel |> DotKernel.values() |> MapSet.new()
 end
+
+defimpl GeCrdt.Protocols.Causal, for: MVReg do
+  alias GeCrdt.Utils.DotContext
+  alias GeCrdt.Types.MVReg
+
+  def join(%MVReg{} = a, %MVReg{} = b), do: MVReg.join(a, b)
+
+  def reset(%MVReg{} = m), do: MVReg.reset(m)
+
+  def read(%MVReg{} = m), do: MVReg.read(m)
+
+  def context(%MVReg{kernel: kernel}), do: kernel.context
+
+  def adopt(%MVReg{kernel: k} = r, id, ctx) do
+    %{r | id: id, kernel: %{k | context: DotContext.join(k.context, ctx)}}
+  end
+
+  def empty?(%MVReg{kernel: k}), do: map_size(k.dot_store) == 0
+end
