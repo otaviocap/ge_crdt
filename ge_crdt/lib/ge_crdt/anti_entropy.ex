@@ -19,8 +19,7 @@ defmodule GeCrdt.AntiEntropy do
 
       config :ge_crdt, anti_entropy: GeCrdt.AntiEntropy.Basic
 
-  or use an implementation module directly, `GeCrdt.Types.*`
-  proxies keep working, since they only talk to this facade:
+  or use an implementation module directly:
 
       alias GeCrdt.{AntiEntropy, Types.GCounter}
       {:ok, a} = AntiEntropy.start_link(GCounter, "a", sync_interval: :manual)

@@ -32,7 +32,7 @@ defmodule GeCrdt.Types.AWORSet do
 
   def read(%__MODULE__{kernel: k}), do: k |> DotKernel.values() |> MapSet.new()
 
-  def member?(%__MODULE__{kernel: k}, value), do: Enum.any?(k.ds, fn {_, v} -> v == value end)
+  def member?(%__MODULE__{} = state, value), do: state |> read() |> MapSet.member?(value)
 
-  def context(%__MODULE__{kernel: k}), do: k.ctx
+  def context(%__MODULE__{kernel: k}), do: k.context
 end

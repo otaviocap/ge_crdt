@@ -41,7 +41,7 @@ defmodule GeCrdt.Types.MVReg do
   def read(%__MODULE__{kernel: kernel}), do: kernel |> DotKernel.values() |> MapSet.new()
 end
 
-defimpl GeCrdt.Protocols.Causal, for: MVReg do
+defimpl GeCrdt.Protocols.Causal, for: GeCrdt.Types.MVReg do
   alias GeCrdt.Utils.DotContext
   alias GeCrdt.Types.MVReg
 

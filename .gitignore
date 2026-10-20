@@ -2,3 +2,4 @@
 .vscode/
 .elixir_ls/
 references/
+/test/
