@@ -28,7 +28,7 @@ defmodule GeCrdt.Types.GSetPropertyTest do
     check all(
             prefix <- list_of(mutate_gen(), max_length: 5),
             v <- member_of(0..4),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       state = GSet |> H.run(@ids, prefix) |> H.states() |> Map.fetch!("a")
       {new_state, delta} = GSet.add(state, v)
@@ -41,7 +41,7 @@ defmodule GeCrdt.Types.GSetPropertyTest do
             ops0 <- list_of(mutate_gen(), max_length: 8),
             perm_a <- H.permutation(H.strip_ids(ops0)),
             perm_b <- H.permutation(H.strip_ids(ops0)),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       ops = H.strip_ids(ops0)
       states = H.build_all(GSet, [{"p1", ops}, {"p2", perm_a}, {"p3", perm_b}])
@@ -51,14 +51,14 @@ defmodule GeCrdt.Types.GSetPropertyTest do
   end
 
   property "replicas converge after gossiping deltas" do
-    check all(script <- script_gen(), max_runs: 40) do
+    check all(script <- script_gen(), max_runs: H.max_runs()) do
       final = GSet |> H.run(@ids, script) |> then(&H.mesh(GSet, &1, @ids))
       assert H.converged_queries(GSet, final) |> Enum.uniq() |> length() == 1
     end
   end
 
   property "read equals the union of everything added" do
-    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: 40) do
+    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: H.max_runs()) do
       added =
         Enum.reduce(ops, MapSet.new(), fn {:mutate, _id, :add, [v]}, acc -> MapSet.put(acc, v) end)
 

@@ -5,6 +5,16 @@ defmodule GeCrdt.PropertyHelpers do
 
   import StreamData
 
+  @default_max_runs 200
+
+  @spec max_runs() :: pos_integer()
+  def max_runs do
+    case System.get_env("PROPERTY_MAX_RUNS") do
+      nil -> @default_max_runs
+      value -> String.to_integer(value)
+    end
+  end
+
   @spec new(module(), term()) :: term()
   def new(mod, id) do
     if Code.ensure_loaded?(mod) and function_exported?(mod, :new, 1) do

@@ -31,7 +31,7 @@ defmodule GeCrdt.Types.TwoPSetPropertyTest do
             prefix <- list_of(mutate_gen(), max_length: 5),
             op <- member_of([:add, :remove]),
             v <- member_of(0..4),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       state = TwoPSet |> H.run(@ids, prefix) |> H.states() |> Map.fetch!("a")
       {new_state, delta} = apply(TwoPSet, op, [state, v])
@@ -44,7 +44,7 @@ defmodule GeCrdt.Types.TwoPSetPropertyTest do
             ops0 <- list_of(mutate_gen(), max_length: 8),
             perm_a <- H.permutation(H.strip_ids(ops0)),
             perm_b <- H.permutation(H.strip_ids(ops0)),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       ops = H.strip_ids(ops0)
       states = H.build_all(TwoPSet, [{"p1", ops}, {"p2", perm_a}, {"p3", perm_b}])
@@ -54,14 +54,14 @@ defmodule GeCrdt.Types.TwoPSetPropertyTest do
   end
 
   property "replicas converge after gossiping deltas" do
-    check all(script <- script_gen(), max_runs: 40) do
+    check all(script <- script_gen(), max_runs: H.max_runs()) do
       final = TwoPSet |> H.run(@ids, script) |> then(&H.mesh(TwoPSet, &1, @ids))
       assert H.converged_queries(TwoPSet, final) |> Enum.uniq() |> length() == 1
     end
   end
 
   property "removed elements never reappear" do
-    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: 40) do
+    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: H.max_runs()) do
       {added, removed} =
         Enum.reduce(ops, {MapSet.new(), MapSet.new()}, fn
           {:mutate, _id, :add, [v]}, {a, r} -> {MapSet.put(a, v), r}

@@ -31,7 +31,7 @@ defmodule GeCrdt.Types.LexCounterPropertyTest do
             prefix <- list_of(mutate_gen(), max_length: 5),
             op <- member_of([:increment, :decrement]),
             n <- member_of(1..3),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       state = LexCounter |> H.run(@ids, prefix) |> H.states() |> Map.fetch!("a")
       {new_state, delta} = apply(LexCounter, op, [state, n])
@@ -44,7 +44,7 @@ defmodule GeCrdt.Types.LexCounterPropertyTest do
             ops0 <- list_of(mutate_gen(), max_length: 8),
             perm_a <- H.permutation(H.strip_ids(ops0)),
             perm_b <- H.permutation(H.strip_ids(ops0)),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       ops = H.strip_ids(ops0)
       states = H.build_all(LexCounter, [{"p1", ops}, {"p2", perm_a}, {"p3", perm_b}])
@@ -54,14 +54,14 @@ defmodule GeCrdt.Types.LexCounterPropertyTest do
   end
 
   property "replicas converge after gossiping deltas" do
-    check all(script <- script_gen(), max_runs: 40) do
+    check all(script <- script_gen(), max_runs: H.max_runs()) do
       final = LexCounter |> H.run(@ids, script) |> then(&H.mesh(LexCounter, &1, @ids))
       assert H.converged_queries(LexCounter, final) |> Enum.uniq() |> length() == 1
     end
   end
 
   property "sequential value follows the increment/decrement fold" do
-    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: 40) do
+    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: H.max_runs()) do
       mine = Enum.filter(ops, fn {:mutate, id, _op, _args} -> id == "a" end)
 
       {state, _} =

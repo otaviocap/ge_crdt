@@ -31,7 +31,7 @@ defmodule GeCrdt.Types.RWSetPropertyTest do
             prefix <- list_of(mutate_gen(), max_length: 5),
             op <- member_of([:add, :remove, :reset]),
             v <- member_of(0..4),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       state = RWSet |> H.run(@ids, prefix) |> H.states() |> Map.fetch!("a")
       args = if op == :reset, do: [], else: [v]
@@ -45,7 +45,7 @@ defmodule GeCrdt.Types.RWSetPropertyTest do
             ops0 <- list_of(mutate_gen(), max_length: 8),
             perm_a <- H.permutation(H.strip_ids(ops0)),
             perm_b <- H.permutation(H.strip_ids(ops0)),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       ops = H.strip_ids(ops0)
       states = H.build_all(RWSet, [{"p1", ops}, {"p2", perm_a}, {"p3", perm_b}])
@@ -55,14 +55,14 @@ defmodule GeCrdt.Types.RWSetPropertyTest do
   end
 
   property "replicas converge after gossiping deltas" do
-    check all(script <- script_gen(), max_runs: 40) do
+    check all(script <- script_gen(), max_runs: H.max_runs()) do
       final = RWSet |> H.run(@ids, script) |> then(&H.mesh(RWSet, &1, @ids))
       assert H.converged_queries(RWSet, final) |> Enum.uniq() |> length() == 1
     end
   end
 
   property "observed remove-then-add resurrects, add-then-remove hides" do
-    check all(v <- member_of(0..4), max_runs: 40) do
+    check all(v <- member_of(0..4), max_runs: H.max_runs()) do
       s = RWSet.new("a")
       {s, _} = RWSet.add(s, v)
       {s, _} = RWSet.remove(s, v)

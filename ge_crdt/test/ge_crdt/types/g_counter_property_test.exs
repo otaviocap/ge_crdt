@@ -28,7 +28,7 @@ defmodule GeCrdt.Types.GCounterPropertyTest do
     check all(
             prefix <- list_of(mutate_gen(), max_length: 5),
             amount <- member_of(1..3),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       state = GCounter |> H.run(@ids, prefix) |> H.states() |> Map.fetch!("a")
       {new_state, delta} = GCounter.increment(state, amount)
@@ -41,7 +41,7 @@ defmodule GeCrdt.Types.GCounterPropertyTest do
             ops0 <- list_of(mutate_gen(), max_length: 8),
             perm_a <- H.permutation(H.strip_ids(ops0)),
             perm_b <- H.permutation(H.strip_ids(ops0)),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       ops = H.strip_ids(ops0)
       states = H.build_all(GCounter, [{"p1", ops}, {"p2", perm_a}, {"p3", perm_b}])
@@ -51,14 +51,14 @@ defmodule GeCrdt.Types.GCounterPropertyTest do
   end
 
   property "replicas converge after gossiping deltas" do
-    check all(script <- script_gen(), max_runs: 40) do
+    check all(script <- script_gen(), max_runs: H.max_runs()) do
       final = GCounter |> H.run(@ids, script) |> then(&H.mesh(GCounter, &1, @ids))
       assert H.converged_queries(GCounter, final) |> Enum.uniq() |> length() == 1
     end
   end
 
   property "value equals the total incremented (no loss)" do
-    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: 40) do
+    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: H.max_runs()) do
       total = Enum.reduce(ops, 0, fn {:mutate, _id, :increment, [n]}, acc -> acc + n end)
       final = ops |> then(&H.run(GCounter, @ids, &1)) |> then(&H.mesh(GCounter, &1, @ids))
 

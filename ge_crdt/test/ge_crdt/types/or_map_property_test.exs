@@ -42,7 +42,7 @@ defmodule GeCrdt.Types.ORMapPropertyTest do
             prefix <- list_of(mutate_gen(), max_length: 5),
             op <- member_of([:delete, :clear]),
             k <- member_of(@keys),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       state = ORMap |> H.run(@ids, prefix) |> H.states() |> Map.fetch!("a")
       args = if op == :clear, do: [], else: [k]
@@ -56,7 +56,7 @@ defmodule GeCrdt.Types.ORMapPropertyTest do
             ops0 <- list_of(mutate_gen(), max_length: 8),
             perm_a <- H.permutation(H.strip_ids(ops0)),
             perm_b <- H.permutation(H.strip_ids(ops0)),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       ops = H.strip_ids(ops0)
       states = H.build_all(ORMap, [{"p1", ops}, {"p2", perm_a}, {"p3", perm_b}])
@@ -66,14 +66,14 @@ defmodule GeCrdt.Types.ORMapPropertyTest do
   end
 
   property "replicas converge on the same nested contents" do
-    check all(script <- script_gen(), max_runs: 40) do
+    check all(script <- script_gen(), max_runs: H.max_runs()) do
       final = ORMap |> H.run(@ids, script) |> then(&H.mesh(ORMap, &1, @ids))
       assert H.converged_queries(ORMap, final) |> Enum.uniq() |> length() == 1
     end
   end
 
   property "every surviving key was added at least once" do
-    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: 40) do
+    check all(ops <- list_of(mutate_gen(), max_length: 10), max_runs: H.max_runs()) do
       added =
         Enum.reduce(ops, MapSet.new(), fn
           {:mutate, _id, :update, [k, _default, _fun]}, acc -> MapSet.put(acc, k)

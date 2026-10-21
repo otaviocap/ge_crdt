@@ -28,7 +28,7 @@ defmodule GeCrdt.Types.EWFlagPropertyTest do
     check all(
             prefix <- list_of(mutate_gen(), max_length: 5),
             op <- member_of([:enable, :disable, :reset]),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       state = EWFlag |> H.run(@ids, prefix) |> H.states() |> Map.fetch!("a")
       {new_state, delta} = apply(EWFlag, op, [state])
@@ -41,7 +41,7 @@ defmodule GeCrdt.Types.EWFlagPropertyTest do
             ops0 <- list_of(mutate_gen(), max_length: 8),
             perm_a <- H.permutation(H.strip_ids(ops0)),
             perm_b <- H.permutation(H.strip_ids(ops0)),
-            max_runs: 40
+            max_runs: H.max_runs()
           ) do
       ops = H.strip_ids(ops0)
       states = H.build_all(EWFlag, [{"p1", ops}, {"p2", perm_a}, {"p3", perm_b}])
@@ -51,14 +51,17 @@ defmodule GeCrdt.Types.EWFlagPropertyTest do
   end
 
   property "replicas converge after gossiping deltas" do
-    check all(script <- script_gen(), max_runs: 40) do
+    check all(script <- script_gen(), max_runs: H.max_runs()) do
       final = EWFlag |> H.run(@ids, script) |> then(&H.mesh(EWFlag, &1, @ids))
       assert H.converged_queries(EWFlag, final) |> Enum.uniq() |> length() == 1
     end
   end
 
   property "sequential read reflects the last operation" do
-    check all(ops <- list_of(member_of([:enable, :disable]), max_length: 8), max_runs: 40) do
+    check all(
+            ops <- list_of(member_of([:enable, :disable]), max_length: 8),
+            max_runs: H.max_runs()
+          ) do
       state = Enum.reduce(ops, EWFlag.new("a"), fn op, st -> elem(apply(EWFlag, op, [st]), 0) end)
       expected = ops != [] and List.last(ops) == :enable
       assert EWFlag.read(state) == expected
