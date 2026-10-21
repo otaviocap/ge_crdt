@@ -46,7 +46,11 @@ defmodule GeCrdt.AntiEntropy.Basic do
   Options: `:neighbours`, `:sync_interval` (`:manual` disables the
   timer), `:sync_on_mutate` (default `true`), `:discovery`,
   `:transitive` (default `true`), `:ship` (`:delta` or `:full`,
-  default `:delta`), `:name`.
+  default `:delta`), `:group`, `:name`.
+
+  `:group` connects to a named `:pg` group instead of the default group
+  named after the CRDT module. It can also be given as a bare term in
+  `:discovery` (e.g. `discovery: :my_group`).
   """
   @spec start_link(module(), term(), keyword()) :: GenServer.on_start()
   @impl GeCrdt.AntiEntropy
@@ -96,7 +100,7 @@ defmodule GeCrdt.AntiEntropy.Basic do
     interval = Keyword.get(opts, :sync_interval, 100)
     initial = GeCrdt.Type.new(mod, id)
 
-    discovery = Discovery.config(Keyword.get(opts, :discovery), mod)
+    discovery = Discovery.config_from_opts(opts, mod)
 
     if discovery do
       Discovery.ensure_scope(discovery.scope)

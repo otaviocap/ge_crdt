@@ -62,7 +62,10 @@ defmodule GeCrdt.AntiEntropy.Causal do
   - `:sync`, `GeCrdt.Sync` strategy module deciding per-round payloads
     (default `GeCrdt.Sync.DeltaInterval`);
   - `:discovery`, `true` or `[scope: scope, group: group]` to
-    auto-discover neighbours through a `:pg` process group;
+    auto-discover neighbours through a `:pg` process group; a bare term
+    (e.g. `:my_group`) is used as the group name;
+  - `:group`, connect to a named `:pg` group instead of the default group
+    named after the CRDT module (enables discovery);
   - `:name`, `GenServer` name registration.
   """
   @spec start_link(module(), term(), keyword()) :: GenServer.on_start()
@@ -120,7 +123,7 @@ defmodule GeCrdt.AntiEntropy.Causal do
     interval = Keyword.get(opts, :sync_interval, 100)
     initial = GeCrdt.Type.new(mod, id)
 
-    discovery = Discovery.config(Keyword.get(opts, :discovery), mod)
+    discovery = Discovery.config_from_opts(opts, mod)
 
     if discovery do
       Discovery.ensure_scope(discovery.scope)

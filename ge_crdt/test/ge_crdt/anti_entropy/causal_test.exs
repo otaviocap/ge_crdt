@@ -291,4 +291,55 @@ defmodule GeCrdt.AntiEntropy.CausalTest do
     await(fn -> Causal.read(a) == 9 end)
     await(fn -> Causal.read(b) == 9 end)
   end
+
+  test "discovery accepts a bare named group" do
+    group = test_group(:bare_group)
+    {:ok, a} = Causal.start_link(GCounter, "a", sync_interval: :manual, discovery: group)
+    {:ok, b} = Causal.start_link(GCounter, "b", sync_interval: :manual, discovery: group)
+
+    Causal.mutate(a, :increment, [2])
+    Causal.mutate(b, :increment, [3])
+    Causal.sync(a)
+    Causal.sync(b)
+
+    await(fn -> Causal.read(a) == 5 end)
+    await(fn -> Causal.read(b) == 5 end)
+  end
+
+  test ":group connects to a named group instead of the module group" do
+    group = test_group(:group_option)
+    {:ok, a} = Causal.start_link(GCounter, "a", sync_interval: :manual, group: group)
+    {:ok, b} = Causal.start_link(GCounter, "b", sync_interval: :manual, group: group)
+
+    Causal.mutate(a, :increment, [4])
+    Causal.sync(a)
+
+    await(fn -> Causal.read(b) == 4 end)
+    assert a in :pg.get_members(:pg, group)
+  end
+
+  test ":group keeps the scope given through :discovery" do
+    group = test_group(:scoped_group)
+    scope = :scoped_group_scope
+
+    {:ok, a} =
+      Causal.start_link(GCounter, "a",
+        sync_interval: :manual,
+        discovery: [scope: scope],
+        group: group
+      )
+
+    {:ok, b} =
+      Causal.start_link(GCounter, "b",
+        sync_interval: :manual,
+        discovery: [scope: scope],
+        group: group
+      )
+
+    Causal.mutate(a, :increment, [1])
+    Causal.sync(a)
+
+    await(fn -> Causal.read(b) == 1 end)
+    assert a in :pg.get_members(scope, group)
+  end
 end

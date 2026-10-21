@@ -654,8 +654,27 @@ Almeida et al., *Efficient State-based CRDTs by Delta-Mutation*:
     default implementation behind the `GeCrdt.AntiEntropy` facade.
 
 Both accept `:neighbours`, `:sync_interval` (`:manual` disables the timer),
-`:sync_on_mutate` (default `true`), `:discovery`, and `:name`. Delivery is
-asynchronous, so the examples below wait for the replicas to catch up:
+`:sync_on_mutate` (default `true`), `:discovery`, `:group`, and `:name`. Delivery
+is asynchronous, so the examples below wait for the replicas to catch up:
+
+By default, `discovery: true` puts replicas in a `:pg` group named after the CRDT
+module, so different types never exchange state. Use `:group` (or pass a bare
+term as `:discovery`) to connect to a named group instead:
+
+```elixir
+alias GeCrdt.AntiEntropy.Causal
+alias GeCrdt.Types.GCounter
+
+{:ok, a} = Causal.start_link(GCounter, "a", discovery: true, group: :counters)
+{:ok, b} = Causal.start_link(GCounter, "b", discovery: :counters)
+
+# Both replicas now discover each other through the :counters group.
+Causal.mutate(a, :increment, [1])
+Causal.sync(a)
+```
+
+Use `discovery: [scope: scope, group: group]` when a custom `:pg` scope is
+needed; a top-level `:group` keeps that scope and only overrides the group.
 
 ```elixir
 wait_for = fn condition ->

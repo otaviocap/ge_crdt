@@ -8,7 +8,8 @@ defmodule GeCrdt.AntiEntropy do
   - `start_link/3` with `:neighbours`, `:sync_interval` (`:manual`
     disables the timer), `:sync_on_mutate` (gossip right after every
     local `mutate/3`, default `true`), `:discovery` (`:pg`-based
-    auto-neighbours) and `:name`;
+    auto-neighbours, optionally naming a group), `:group` (connect to a
+    named `:pg` group instead of the module-named default) and `:name`;
   - `mutate/3` applies `apply(type, op, [state | args])` and pushes the
     delta out (subject to `sync_on_mutate`);
   - `read/1` runs the type's query, `state/1` returns the raw state,
