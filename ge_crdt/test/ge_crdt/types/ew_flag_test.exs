@@ -32,4 +32,20 @@ defmodule GeCrdt.Types.EWFlagTest do
     assert b |> EWFlag.join(d) |> EWFlag.read()
     assert EWFlag.join(a, d) == a
   end
+
+  test "re-enabling is fine and a later disable propagates" do
+    o1 = EWFlag.new("x")
+    o2 = EWFlag.new("y")
+
+    {o1, _} = EWFlag.enable(o1)
+    {o2, _} = EWFlag.enable(o2)
+    {o2, _} = EWFlag.enable(o2)
+
+    o3 = EWFlag.join(o1, o2)
+    assert EWFlag.read(o3)
+
+    {o3, _} = EWFlag.disable(o3)
+    o2 = EWFlag.join(o2, o3)
+    refute EWFlag.read(o2)
+  end
 end

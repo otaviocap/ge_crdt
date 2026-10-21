@@ -2,6 +2,7 @@ defmodule GeCrdt.Types.GSetTest do
   use ExUnit.Case, async: true
 
   alias GeCrdt.Types.GSet
+  alias GeCrdt.Utils.Join
 
   test "add makes elements readable" do
     s = GSet.new()
@@ -38,5 +39,28 @@ defmodule GeCrdt.Types.GSetTest do
     {s, d} = GSet.add(s, 1)
     assert GSet.join(s, d) == s
     assert GSet.join(s, s) == s
+  end
+
+  test "delta groups from both replicas match the full join" do
+    o1 = GSet.new()
+    o2 = GSet.new()
+    do1 = GSet.new()
+    do2 = GSet.new()
+
+    {o1, d} = GSet.add(o1, 1)
+    do1 = GSet.join(do1, d)
+    {o1, d} = GSet.add(o1, 2)
+    do1 = GSet.join(do1, d)
+
+    {o2, d} = GSet.add(o2, 2)
+    do2 = GSet.join(do2, d)
+    {o2, d} = GSet.add(o2, 3)
+    do2 = GSet.join(do2, d)
+
+    o3 = GSet.join(o1, o2)
+    o4 = Join.join(Join.join(o1, do2), Join.join(o2, do1))
+
+    assert GSet.read(o3) == MapSet.new([1, 2, 3])
+    assert GSet.read(o4) == GSet.read(o3)
   end
 end

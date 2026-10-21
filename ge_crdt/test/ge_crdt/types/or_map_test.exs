@@ -87,4 +87,29 @@ defmodule GeCrdt.Types.ORMapTest do
     assert ORMap.read(m) == %{}
     assert ORMap.keys(m) == []
   end
+
+  test "erase and clear are observed resets across replicas" do
+    m = ORMap.new("x")
+    n = ORMap.new("y")
+
+    {m, _} = ORMap.update(m, "color", AWSet.new(), &AWSet.add(&1, "red"))
+    {m, _} = ORMap.update(m, "taste", AWSet.new(), &AWSet.add(&1, "bitter"))
+    {n, _} = ORMap.update(n, "sound", AWSet.new(), &AWSet.add(&1, "loud"))
+    {n, _} = ORMap.update(n, "color", AWSet.new(), &AWSet.add(&1, "blue"))
+
+    m = ORMap.join(m, n)
+    assert ORMap.read(m)["color"] == MapSet.new(["blue", "red"])
+
+    {n, _} = ORMap.delete(n, "sound")
+    m = ORMap.join(m, n)
+
+    assert ORMap.get(m, "sound", AWSet.new()) |> AWSet.read() == MapSet.new()
+
+    {m, _} = ORMap.delete(m, "color")
+    {m, _} = ORMap.clear(m)
+    m = ORMap.join(m, n)
+
+    assert ORMap.read(m) == %{}
+    assert ORMap.keys(m) == []
+  end
 end

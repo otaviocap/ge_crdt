@@ -50,4 +50,21 @@ defmodule GeCrdt.Types.MVRegTest do
     assert MVReg.join(y, d) |> MVReg.read() == MapSet.new(["hello"])
     assert MVReg.join(x, d) == x
   end
+
+  test "resolve keeps the maximum from several concurrent values" do
+    x = MVReg.new("x")
+    y = MVReg.new("y")
+    z = MVReg.new("z")
+
+    {x, _} = MVReg.write(x, 1)
+    {y, _} = MVReg.write(y, 3)
+    {z, _} = MVReg.write(z, 5)
+
+    x = x |> MVReg.join(y) |> MVReg.join(z)
+
+    assert MVReg.read(x) == MapSet.new([1, 3, 5])
+
+    {x, _} = MVReg.resolve(x)
+    assert MVReg.read(x) == MapSet.new([5])
+  end
 end

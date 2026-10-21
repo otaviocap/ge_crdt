@@ -40,4 +40,40 @@ defmodule GeCrdt.Types.TwoPSetTest do
 
     assert TwoPSet.read(t) == GSet.read(g)
   end
+
+  test "delta groups from both replicas match the full join" do
+    o1 = TwoPSet.new()
+    o2 = TwoPSet.new()
+    do1 = TwoPSet.new()
+    do2 = TwoPSet.new()
+
+    {o1, d} = TwoPSet.add(o1, 1)
+    do1 = TwoPSet.join(do1, d)
+    {o1, d} = TwoPSet.add(o1, 2)
+    do1 = TwoPSet.join(do1, d)
+
+    {o2, d} = TwoPSet.add(o2, 2)
+    do2 = TwoPSet.join(do2, d)
+    {o2, d} = TwoPSet.remove(o2, 2)
+    do2 = TwoPSet.join(do2, d)
+
+    o3 = TwoPSet.join(o1, o2)
+    o4 = TwoPSet.join(TwoPSet.join(o1, do1), TwoPSet.join(o2, do1))
+
+    assert TwoPSet.read(o3) == MapSet.new([1])
+    assert TwoPSet.read(o4) == TwoPSet.read(o3)
+    assert TwoPSet.member?(o3, 1)
+    refute TwoPSet.member?(o3, 2)
+    assert TwoPSet.read(do2) == MapSet.new()
+  end
+
+  test "removing the same element twice is idempotent" do
+    s = TwoPSet.new()
+    {s, _} = TwoPSet.add(s, "x")
+    {s, _} = TwoPSet.remove(s, "x")
+    {s, d} = TwoPSet.remove(s, "x")
+
+    assert TwoPSet.read(s) == MapSet.new()
+    assert TwoPSet.join(s, d) == s
+  end
 end
