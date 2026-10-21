@@ -2,7 +2,9 @@
 
 Reference implementations of state-based CRDTs in Elixir that offer deltas for
 all mutations, inspired by the C++ version
-[CBaquero/delta-enabled-crdts](https://github.com/CBaquero/delta-enabled-crdts/) and implemented following [Delta State Replicated Data Types](https://doi.org/10.1016/j.jpdc.2017.08.003.)
+[CBaquero/delta-enabled-crdts](https://github.com/CBaquero/delta-enabled-crdts/) and implemented following [Delta State Replicated Data Types](https://doi.org/10.1016/j.jpdc.2017.08.003.).
+
+> I found really useful the readme inside the [CBaquero/delta-enabled-crdts](https://github.com/CBaquero/delta-enabled-crdts/) repository. So this one is heavily inspired by it. 
 
 ## Content
 
@@ -37,7 +39,6 @@ Current datatypes are:
 
   * `GeCrdt.Types.GSet`: A grow-only set.
   * `GeCrdt.Types.TwoPSet`: A two-phase set that supports removing an element for ever.
-  * Pair: A pair of CRDTs, composed with an Elixir tuple and `GeCrdt.Utils.Join`.
   * `GeCrdt.Types.GCounter`: A grow-only counter.
   * `GeCrdt.Types.PNCounter`: A counter supporting increment and decrement.
   * `GeCrdt.Types.LexCounter`: A counter supporting increment and decrement (Cassandra inspired).
@@ -326,9 +327,7 @@ instance of a given payload type.
 
 If a mapping is removed, the tag/dot is still remembered (in a compact form) in
 the causal context. This allows join to be efficient in the propagation of
-removes without resorting to more space-demanding tombstones. In short, it
-implements the theory behind Optimized OR-Sets (a.k.a. ORSWOT) and offers a more
-general use for other similar datatypes.
+removes without resorting to more space-demanding tombstones.
 
 ```elixir
 k = DotKernel.new()
@@ -352,7 +351,7 @@ An Add-Wins Observed Remove Set is a set that allows element additions and
 removals. Removals only affect elements that are visible locally, so a concurrent
 removal and addition of the same element will result in the element still being
 present after joining the sets. The implementation uses the `DotKernel` and is
-optimized; it is also known as ORSWOT in the early literature.
+optimized.
 
 The example below shows a concurrent add and remove and finally a reset.
 
@@ -418,8 +417,8 @@ overwrite everything with the string `"mars"` in replica `y`, and show that this
 effect propagates on join to replica `x`.
 
 ```elixir
-x = MVReg.new("uid-x")
-y = MVReg.new("uid-y")
+x = MVReg.new("x")
+y = MVReg.new("y")
 
 {x, _} = MVReg.write(x, "hello")
 {x, _} = MVReg.write(x, "world")
@@ -448,8 +447,8 @@ A special case is when the stored payload is a total order, implying that
 element.
 
 ```elixir
-a = MVReg.new("uid-a")
-b = MVReg.new("uid-b")
+a = MVReg.new("a")
+b = MVReg.new("b")
 
 {a, _} = MVReg.write(a, 0)
 {b, _} = MVReg.write(b, 3)
@@ -473,9 +472,9 @@ The last example shows a payload that reflects a partial order, and can thus
 allow for concurrent maximals after `resolve`.
 
 ```elixir
-j = MVReg.new("uid-j")
-k = MVReg.new("uid-k")
-l = MVReg.new("uid-l")
+j = MVReg.new("j")
+k = MVReg.new("k")
+l = MVReg.new("l")
 
 {j, _} = MVReg.write(j, {0, 0})
 {k, _} = MVReg.write(k, {1, 0})
@@ -491,7 +490,7 @@ MVReg.read(j)
 ### EWFlag
 
 An Enable-Wins Flag supports `enable` and `disable`. A concurrent enable wins
-over a disable (Riak Flag inspired). It is built on the `DotKernel`.
+over a disable. It is built on the `DotKernel`.
 
 ```elixir
 x = EWFlag.new("x")
