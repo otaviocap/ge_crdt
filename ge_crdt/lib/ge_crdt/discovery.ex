@@ -55,18 +55,7 @@ defmodule GeCrdt.Discovery do
   down with them if they crash.
   """
   @spec ensure_scope(atom()) :: :ok
-  def ensure_scope(:pg) do
-    case :pg.start_link() do
-      {:ok, pid} ->
-        Process.unlink(pid)
-        :ok
-
-      {:error, {:already_started, _}} ->
-        :ok
-    end
-  end
-
-  def ensure_scope(scope) do
+  def ensure_scope(scope \\ :pg) do
     case :pg.start_link(scope) do
       {:ok, pid} ->
         Process.unlink(pid)
