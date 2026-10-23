@@ -1,8 +1,7 @@
 defmodule GeCrdt.AvailabilityTest do
   @moduledoc """
-  Local availability (§"Disponibilidade local"): reads and writes on a
-  replica complete without contacting other nodes — no blocking, no
-  timeouts — even fully partitioned or facing dead neighbours.
+  Local availability: reads and writes on a replica complete
+  without contacting other node.
   """
   use ExUnit.Case, async: true
 

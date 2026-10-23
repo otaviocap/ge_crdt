@@ -98,7 +98,7 @@ defmodule GeCrdt.PartitionTest do
     assert Causal.read(a) == 11
     assert Causal.read(b) == 101
 
-    # heal connectivity only — no manual sync call from here on
+    # heal connectivity only - no manual sync call from here on
     Causal.set_neighbours(a, [b])
     Causal.set_neighbours(b, [a])
 

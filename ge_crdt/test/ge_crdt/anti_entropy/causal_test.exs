@@ -50,7 +50,7 @@ defmodule GeCrdt.AntiEntropy.CausalTest do
     Causal.set_neighbours(a, [b])
     Causal.set_neighbours(b, [a])
 
-    # sync_interval: :manual on both, and sync/1 is never called —
+    # sync_interval: :manual on both, and sync/1 is never called
     # convergence can only come from the mutate-triggered round
     Causal.mutate(a, :increment, [2])
     Causal.mutate(b, :increment, [3])

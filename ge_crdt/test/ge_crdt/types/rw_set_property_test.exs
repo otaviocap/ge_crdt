@@ -26,6 +26,12 @@ defmodule GeCrdt.Types.RWSetPropertyTest do
     list_of(one_of([mutate_gen(), sync_gen]), max_length: 12)
   end
 
+  defp distinct_pair_gen do
+    bind(member_of(0..4), fn v ->
+      map(filter(member_of(0..4), &(&1 != v)), &{v, &1})
+    end)
+  end
+
   property "delta decomposition holds for add, remove and reset" do
     check all(
             prefix <- list_of(mutate_gen(), max_length: 5),
@@ -58,6 +64,23 @@ defmodule GeCrdt.Types.RWSetPropertyTest do
     check all(script <- script_gen(), max_runs: H.max_runs()) do
       final = RWSet |> H.run(@ids, script) |> then(&H.mesh(RWSet, &1, @ids))
       assert H.converged_queries(RWSet, final) |> Enum.uniq() |> length() == 1
+    end
+  end
+
+  property "concurrent remove wins over add" do
+    check all({v, w} <- distinct_pair_gen(), max_runs: H.max_runs()) do
+      x = RWSet.new("x")
+      {x, _} = RWSet.add(x, v)
+      {x, _} = RWSet.remove(x, v)
+
+      y = RWSet.new("y")
+      {y, _} = RWSet.add(y, w)
+      {y, _} = RWSet.add(y, v)
+
+      merged = RWSet.join(x, y)
+
+      assert RWSet.read(merged) == MapSet.new([w])
+      assert RWSet.read(RWSet.join(merged, x)) == RWSet.read(RWSet.join(merged, y))
     end
   end
 

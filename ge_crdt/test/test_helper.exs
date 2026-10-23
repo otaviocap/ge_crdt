@@ -5,7 +5,7 @@ defmodule GeCrdt.PropertyHelpers do
 
   import StreamData
 
-  @default_max_runs 200
+  @default_max_runs 2000
 
   @spec max_runs() :: pos_integer()
   def max_runs do
