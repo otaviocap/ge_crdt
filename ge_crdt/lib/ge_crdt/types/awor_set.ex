@@ -36,3 +36,22 @@ defmodule GeCrdt.Types.AWORSet do
 
   def context(%__MODULE__{kernel: k}), do: k.context
 end
+
+defimpl GeCrdt.Protocols.Causal, for: GeCrdt.Types.AWORSet do
+  alias GeCrdt.Utils.DotContext
+  alias GeCrdt.Types.AWORSet
+
+  def join(%AWORSet{} = a, %AWORSet{} = b), do: AWORSet.join(a, b)
+
+  def reset(%AWORSet{} = s), do: AWORSet.reset(s)
+
+  def read(%AWORSet{} = s), do: AWORSet.read(s)
+
+  def context(%AWORSet{kernel: kernel}), do: kernel.context
+
+  def adopt(%AWORSet{kernel: k} = s, id, ctx) do
+    %{s | id: id, kernel: %{k | context: DotContext.join(k.context, ctx)}}
+  end
+
+  def empty?(%AWORSet{kernel: k}), do: map_size(k.dot_store) == 0
+end

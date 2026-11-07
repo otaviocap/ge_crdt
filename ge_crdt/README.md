@@ -44,10 +44,9 @@ Current datatypes are:
   * `GeCrdt.Types.LexCounter`: A counter supporting increment and decrement (Cassandra inspired).
   * `GeCrdt.Utils.DotKernel`: Auxiliary datatype for building causal-based datatypes.
   * `GeCrdt.Utils.DotContext`: Auxiliary causal context (dots and compact counters).
-  * `GeCrdt.Types.AWSet`: An add-wins set built on the dot kernel.
-  * `GeCrdt.Types.AWORSet`: An add-wins optimized observed-remove set that allows adds and removes.
+  * `GeCrdt.Types.AWORSet`: An add-wins observed-remove set that allows adds and removes.
   * `GeCrdt.Types.RWSet`: A remove-wins set that allows adds and removes.
-  * `GeCrdt.Types.MVReg`: An optimized multi-value register.
+  * `GeCrdt.Types.MVReg`: An multi-value register.
   * `GeCrdt.Types.EWFlag`: Flag with enable/disable. Enable wins (Riak Flag inspired).
   * `GeCrdt.Types.ORMap`: Map of keys to causal CRDTs (spec in common with the Riak Map).
   * `GeCrdt.Types.AWLWWSet`: Add-wins last-writer-wins set.
@@ -317,7 +316,7 @@ y = LexCounter.join(y, x)
 
 While the `DotKernel` is a proper CRDT, with mutations and a join, its purpose
 is not direct use. Instead it serves as the basis for all datatypes that use
-dot-based causality tracking (notably `AWSet`, `AWORSet`, `RWSet`, `MVReg`,
+dot-based causality tracking (notably `AWORSet`, `AWORSet`, `RWSet`, `MVReg`,
 `EWFlag`, and `ORMap`). These datatypes do not need a specialized join and
 simply use the `DotKernel` generic join.
 
@@ -512,7 +511,7 @@ EWFlag.read(x)
 
 An Observed Remove Map can be used to compose a map of keys to CRDTs. Not all
 CRDTs make sense inside such a map, so currently it is restricted to types
-implementing `GeCrdt.Protocols.Causal`: `AWSet`, `AWORSet`, `RWSet`, `MVReg`,
+implementing `GeCrdt.Protocols.Causal`: `AWORSet`, `RWSet`, `MVReg`,
 `EWFlag`, and `ORMap` itself (enabling recursive composition).
 
 Let us start with a simple example of a map that maps strings to remove-wins
