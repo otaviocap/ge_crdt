@@ -20,7 +20,7 @@ all mutations, inspired by the C++ version
     - [PNCounter](#pncounter)
     - [LexCounter](#lexcounter)
     - [DotKernel](#dotkernel)
-    - [AWORSet](#aworset)
+    - [AWSet](#awset)
     - [RWSet](#rwset)
     - [MVReg](#mvreg)
     - [EWFlag](#ewflag)
@@ -44,7 +44,7 @@ Current datatypes are:
   * `GeCrdt.Types.LexCounter`: A counter supporting increment and decrement (Cassandra inspired).
   * `GeCrdt.Utils.DotKernel`: Auxiliary datatype for building causal-based datatypes.
   * `GeCrdt.Utils.DotContext`: Auxiliary causal context (dots and compact counters).
-  * `GeCrdt.Types.AWORSet`: An add-wins observed-remove set that allows adds and removes.
+  * `GeCrdt.Types.AWSet`: An add-wins set that allows adds and removes.
   * `GeCrdt.Types.RWSet`: A remove-wins set that allows adds and removes.
   * `GeCrdt.Types.MVReg`: An multi-value register.
   * `GeCrdt.Types.EWFlag`: Flag with enable/disable. Enable wins (Riak Flag inspired).
@@ -73,7 +73,7 @@ The snippets below assume these aliases (or use the fully qualified names):
 ```elixir
 alias GeCrdt.Types.{
   AWLWWSet,
-  AWORSet,
+  AWSet,
   EWFlag,
   GCounter,
   GSet,
@@ -96,20 +96,20 @@ while the other node adds that same string and a different one. Finally we join
 the two states and see the result.
 
 ```elixir
-sx = AWORSet.new("x")
-sy = AWORSet.new("y")
+sx = AWSet.new("x")
+sy = AWSet.new("y")
 
 # Node x
-{sx, _} = AWORSet.add(sx, "apple")
-{sx, _} = AWORSet.remove(sx, "apple")
+{sx, _} = AWSet.add(sx, "apple")
+{sx, _} = AWSet.remove(sx, "apple")
 
 # Node y
-{sy, _} = AWORSet.add(sy, "juice")
-{sy, _} = AWORSet.add(sy, "apple")
+{sy, _} = AWSet.add(sy, "juice")
+{sy, _} = AWSet.add(sy, "apple")
 
 # Join into one object and show it
-sx = AWORSet.join(sx, sy)
-AWORSet.read(sx)
+sx = AWSet.join(sx, sy)
+AWSet.read(sx)
 # => MapSet.new(["apple", "juice"])
 ```
 
@@ -316,7 +316,7 @@ y = LexCounter.join(y, x)
 
 While the `DotKernel` is a proper CRDT, with mutations and a join, its purpose
 is not direct use. Instead it serves as the basis for all datatypes that use
-dot-based causality tracking (notably `AWORSet`, `AWORSet`, `RWSet`, `MVReg`,
+dot-based causality tracking (notably `AWSet`, `RWSet`, `MVReg`,
 `EWFlag`, and `ORMap`). These datatypes do not need a specialized join and
 simply use the `DotKernel` generic join.
 
@@ -344,9 +344,9 @@ DotContext.dot_in?(delta.context, {"x", 1})
 # => true
 ```
 
-### AWORSet
+### AWSet
 
-An Add-Wins Observed Remove Set is a set that allows element additions and
+An Add-Wins Set is a set that allows element additions and
 removals. Removals only affect elements that are visible locally, so a concurrent
 removal and addition of the same element will result in the element still being
 present after joining the sets. The implementation uses the `DotKernel` and is
@@ -355,29 +355,29 @@ optimized.
 The example below shows a concurrent add and remove and finally a reset.
 
 ```elixir
-x = AWORSet.new("a")
-y = AWORSet.new("b")
+x = AWSet.new("a")
+y = AWSet.new("b")
 
-{x, _} = AWORSet.add(x, 3.14)
-{x, _} = AWORSet.add(x, 2.718)
-{x, _} = AWORSet.remove(x, 3.14)
-{y, _} = AWORSet.add(y, 3.14)
+{x, _} = AWSet.add(x, 3.14)
+{x, _} = AWSet.add(x, 2.718)
+{x, _} = AWSet.remove(x, 3.14)
+{y, _} = AWSet.add(y, 3.14)
 
-x = AWORSet.join(x, y)
+x = AWSet.join(x, y)
 
-AWORSet.read(x)
+AWSet.read(x)
 # => MapSet.new([2.718, 3.14])
 
-{x, _} = AWORSet.reset(x)
-x = AWORSet.join(x, y)
+{x, _} = AWSet.reset(x)
+x = AWSet.join(x, y)
 
-AWORSet.read(x)
+AWSet.read(x)
 # => MapSet.new()
 ```
 
 ### RWSet
 
-A Remove-Wins Set is the dual implementation to `AWORSet`, where concurrent
+A Remove-Wins Set is the dual implementation to `AWSet`, where concurrent
 removes win over adds. The implementation is based on the `DotKernel`.
 
 We show the same example as above, but with a different outcome.
@@ -511,7 +511,7 @@ EWFlag.read(x)
 
 An Observed Remove Map can be used to compose a map of keys to CRDTs. Not all
 CRDTs make sense inside such a map, so currently it is restricted to types
-implementing `GeCrdt.Protocols.Causal`: `AWORSet`, `RWSet`, `MVReg`,
+implementing `GeCrdt.Protocols.Causal`: `AWSet`, `RWSet`, `MVReg`,
 `EWFlag`, and `ORMap` itself (enabling recursive composition).
 
 Let us start with a simple example of a map that maps strings to remove-wins
@@ -718,22 +718,22 @@ delta transitively.
 
 ```elixir
 alias GeCrdt.AntiEntropy.Basic
-alias GeCrdt.Types.AWORSet
+alias GeCrdt.Types.AWSet
 
 {:ok, a} =
-  Basic.start_link(AWORSet, "a",
+  Basic.start_link(AWSet, "a",
     sync_interval: :manual,
     sync_on_mutate: false
   )
 
 {:ok, b} =
-  Basic.start_link(AWORSet, "b",
+  Basic.start_link(AWSet, "b",
     sync_interval: :manual,
     sync_on_mutate: false
   )
 
 {:ok, c} =
-  Basic.start_link(AWORSet, "c",
+  Basic.start_link(AWSet, "c",
     sync_interval: :manual,
     sync_on_mutate: false
   )

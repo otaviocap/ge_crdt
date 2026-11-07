@@ -6,7 +6,7 @@ defmodule GeCrdt.AvailabilityTest do
   use ExUnit.Case, async: true
 
   alias GeCrdt.AntiEntropy.Causal
-  alias GeCrdt.Types.{AWORSet, GCounter}
+  alias GeCrdt.Types.{AWSet, GCounter}
 
   test "mutate/read/state/sync succeed with no neighbours at all" do
     {:ok, a} = Causal.start_link(GCounter, "a", sync_interval: :manual)
@@ -19,7 +19,7 @@ defmodule GeCrdt.AvailabilityTest do
   end
 
   test "queries on a fresh replica return bottom values" do
-    {:ok, a} = Causal.start_link(AWORSet, "a", sync_interval: :manual)
+    {:ok, a} = Causal.start_link(AWSet, "a", sync_interval: :manual)
     assert Causal.read(a) == MapSet.new()
 
     {:ok, c} = Causal.start_link(GCounter, "c", sync_interval: :manual)
@@ -45,7 +45,7 @@ defmodule GeCrdt.AvailabilityTest do
   end
 
   test "replicas stay responsive while partitioned" do
-    {:ok, a} = Causal.start_link(AWORSet, "a", sync_interval: :manual)
+    {:ok, a} = Causal.start_link(AWSet, "a", sync_interval: :manual)
 
     assert Causal.mutate(a, :add, ["x"]) == :ok
     assert Causal.read(a) == MapSet.new(["x"])

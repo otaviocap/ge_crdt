@@ -2,7 +2,7 @@ defmodule GeCrdt.TypeProxyTest do
   use ExUnit.Case, async: true
 
   alias GeCrdt.AntiEntropy.Causal
-  alias GeCrdt.Types.{AWORSet, GCounter}
+  alias GeCrdt.Types.{AWSet, GCounter}
 
   defp await(fun, timeout \\ 2000) do
     deadline = System.monotonic_time(:millisecond) + timeout
@@ -49,10 +49,10 @@ defmodule GeCrdt.TypeProxyTest do
     group = proxy_group(:set)
 
     {:ok, a} =
-      Causal.start_link(AWORSet, "a", sync_interval: :manual, discovery: [group: group])
+      Causal.start_link(AWSet, "a", sync_interval: :manual, discovery: [group: group])
 
     {:ok, b} =
-      Causal.start_link(AWORSet, "b", sync_interval: :manual, discovery: [group: group])
+      Causal.start_link(AWSet, "b", sync_interval: :manual, discovery: [group: group])
 
     assert Causal.mutate(a, :add, ["apple"]) == :ok
     Causal.sync(a)

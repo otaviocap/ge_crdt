@@ -1,7 +1,7 @@
-defmodule GeCrdt.Types.AWORSet do
+defmodule GeCrdt.Types.AWSet do
   @behaviour GeCrdt.Type
   @moduledoc """
-  Add-wins observed-remove set.
+  Add-wins set.
   """
   alias GeCrdt.Utils.DotKernel
   defstruct id: nil, kernel: %DotKernel{}
@@ -37,21 +37,21 @@ defmodule GeCrdt.Types.AWORSet do
   def context(%__MODULE__{kernel: k}), do: k.context
 end
 
-defimpl GeCrdt.Protocols.Causal, for: GeCrdt.Types.AWORSet do
+defimpl GeCrdt.Protocols.Causal, for: GeCrdt.Types.AWSet do
   alias GeCrdt.Utils.DotContext
-  alias GeCrdt.Types.AWORSet
+  alias GeCrdt.Types.AWSet
 
-  def join(%AWORSet{} = a, %AWORSet{} = b), do: AWORSet.join(a, b)
+  def join(%AWSet{} = a, %AWSet{} = b), do: AWSet.join(a, b)
 
-  def reset(%AWORSet{} = s), do: AWORSet.reset(s)
+  def reset(%AWSet{} = s), do: AWSet.reset(s)
 
-  def read(%AWORSet{} = s), do: AWORSet.read(s)
+  def read(%AWSet{} = s), do: AWSet.read(s)
 
-  def context(%AWORSet{kernel: kernel}), do: kernel.context
+  def context(%AWSet{kernel: kernel}), do: kernel.context
 
-  def adopt(%AWORSet{kernel: k} = s, id, ctx) do
+  def adopt(%AWSet{kernel: k} = s, id, ctx) do
     %{s | id: id, kernel: %{k | context: DotContext.join(k.context, ctx)}}
   end
 
-  def empty?(%AWORSet{kernel: k}), do: map_size(k.dot_store) == 0
+  def empty?(%AWSet{kernel: k}), do: map_size(k.dot_store) == 0
 end

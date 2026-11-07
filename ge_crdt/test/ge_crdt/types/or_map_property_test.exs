@@ -5,22 +5,22 @@ defmodule GeCrdt.Types.ORMapPropertyTest do
   import StreamData
 
   alias GeCrdt.PropertyHelpers, as: H
-  alias GeCrdt.Types.{AWORSet, ORMap}
+  alias GeCrdt.Types.{AWSet, ORMap}
 
   @ids ["a", "b", "c"]
   @keys ["k1", "k2"]
 
-  defp add_fun(v), do: fn s -> AWORSet.add(s, v) end
-  defp rmv_fun(v), do: fn s -> AWORSet.remove(s, v) end
+  defp add_fun(v), do: fn s -> AWSet.add(s, v) end
+  defp rmv_fun(v), do: fn s -> AWSet.remove(s, v) end
 
   defp mutate_gen do
     bind(member_of(@ids), fn id ->
       one_of([
         bind(member_of(@keys), fn k ->
-          map(member_of(0..3), fn v -> {:mutate, id, :update, [k, AWORSet.new(), add_fun(v)]} end)
+          map(member_of(0..3), fn v -> {:mutate, id, :update, [k, AWSet.new(), add_fun(v)]} end)
         end),
         bind(member_of(@keys), fn k ->
-          map(member_of(0..3), fn v -> {:mutate, id, :update, [k, AWORSet.new(), rmv_fun(v)]} end)
+          map(member_of(0..3), fn v -> {:mutate, id, :update, [k, AWSet.new(), rmv_fun(v)]} end)
         end),
         map(member_of(@keys), fn k -> {:mutate, id, :delete, [k]} end),
         constant({:mutate, id, :clear, []})

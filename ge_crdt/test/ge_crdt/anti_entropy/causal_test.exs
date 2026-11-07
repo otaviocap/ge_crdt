@@ -2,7 +2,7 @@ defmodule GeCrdt.AntiEntropy.CausalTest do
   use ExUnit.Case, async: true
 
   alias GeCrdt.AntiEntropy.Causal
-  alias GeCrdt.Types.{AWORSet, GCounter, GSet}
+  alias GeCrdt.Types.{AWSet, GCounter, GSet}
 
   defp await(fun, timeout \\ 2000) do
     deadline = System.monotonic_time(:millisecond) + timeout
@@ -121,8 +121,8 @@ defmodule GeCrdt.AntiEntropy.CausalTest do
   end
 
   test "add-wins set: adds and observed removes propagate" do
-    a = start_replica(AWORSet, "a")
-    b = start_replica(AWORSet, "b")
+    a = start_replica(AWSet, "a")
+    b = start_replica(AWSet, "b")
     Causal.set_neighbours(a, [b])
     Causal.set_neighbours(b, [a])
 
@@ -139,9 +139,9 @@ defmodule GeCrdt.AntiEntropy.CausalTest do
   end
 
   test "transitive propagation along a chain a -> b -> c" do
-    a = start_replica(AWORSet, "a")
-    b = start_replica(AWORSet, "b")
-    c = start_replica(AWORSet, "c")
+    a = start_replica(AWSet, "a")
+    b = start_replica(AWSet, "b")
+    c = start_replica(AWSet, "c")
     Causal.set_neighbours(a, [b])
     Causal.set_neighbours(b, [c])
     Causal.set_neighbours(c, [])
@@ -180,8 +180,8 @@ defmodule GeCrdt.AntiEntropy.CausalTest do
   end
 
   test "new member receives the full state after history was collected" do
-    a = start_replica(AWORSet, "a")
-    b = start_replica(AWORSet, "b")
+    a = start_replica(AWSet, "a")
+    b = start_replica(AWSet, "b")
     Causal.set_neighbours(a, [b])
     Causal.set_neighbours(b, [a])
 
@@ -194,7 +194,7 @@ defmodule GeCrdt.AntiEntropy.CausalTest do
     Causal.sync(a)
     assert :sys.get_state(a).buffer == %{}
 
-    c = start_replica(AWORSet, "c")
+    c = start_replica(AWSet, "c")
     Causal.set_neighbours(a, [b, c])
     Causal.sync(a)
 
@@ -275,10 +275,10 @@ defmodule GeCrdt.AntiEntropy.CausalTest do
     {:ok, gc} = Causal.start_link(GCounter, "gc", sync_interval: :manual, discovery: true)
 
     {:ok, aw} =
-      Causal.start_link(AWORSet, "aw", sync_interval: :manual, discovery: true)
+      Causal.start_link(AWSet, "aw", sync_interval: :manual, discovery: true)
 
     assert :pg.get_members(:pg, GCounter) == [gc]
-    assert :pg.get_members(:pg, AWORSet) == [aw]
+    assert :pg.get_members(:pg, AWSet) == [aw]
   end
 
   test "fully automatic end-to-end over the timer with discovery only" do

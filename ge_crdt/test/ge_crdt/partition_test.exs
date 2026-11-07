@@ -8,7 +8,7 @@ defmodule GeCrdt.PartitionTest do
   use ExUnit.Case, async: true
 
   alias GeCrdt.AntiEntropy.Causal
-  alias GeCrdt.Types.{AWORSet, GCounter}
+  alias GeCrdt.Types.{AWSet, GCounter}
 
   defp await(fun, timeout \\ 3000) do
     deadline = System.monotonic_time(:millisecond) + timeout
@@ -56,8 +56,8 @@ defmodule GeCrdt.PartitionTest do
   end
 
   test "sets keep both sides' concurrent adds after healing" do
-    {:ok, a} = Causal.start_link(AWORSet, "a", sync_interval: :manual)
-    {:ok, b} = Causal.start_link(AWORSet, "b", sync_interval: :manual)
+    {:ok, a} = Causal.start_link(AWSet, "a", sync_interval: :manual)
+    {:ok, b} = Causal.start_link(AWSet, "b", sync_interval: :manual)
 
     Causal.set_neighbours(a, [])
     Causal.set_neighbours(b, [])

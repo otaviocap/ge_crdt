@@ -3,7 +3,7 @@ defmodule GeCrdt.AntiEntropy.BasicTest do
 
   alias GeCrdt.AntiEntropy.Basic
   alias GeCrdt.AntiEntropy.Causal
-  alias GeCrdt.Types.{AWORSet, GCounter}
+  alias GeCrdt.Types.{AWSet, GCounter}
 
   defp await(fun, timeout \\ 2000) do
     deadline = System.monotonic_time(:millisecond) + timeout
@@ -43,9 +43,9 @@ defmodule GeCrdt.AntiEntropy.BasicTest do
   end
 
   test "transitive mode forwards along a chain" do
-    a = start_replica(AWORSet, "a")
-    b = start_replica(AWORSet, "b")
-    c = start_replica(AWORSet, "c")
+    a = start_replica(AWSet, "a")
+    b = start_replica(AWSet, "b")
+    c = start_replica(AWSet, "c")
     Basic.set_neighbours(a, [b])
     Basic.set_neighbours(b, [c])
     Basic.set_neighbours(c, [])
@@ -57,9 +57,9 @@ defmodule GeCrdt.AntiEntropy.BasicTest do
   end
 
   test "direct mode does not forward received deltas" do
-    a = start_replica(AWORSet, "a")
-    b = start_replica(AWORSet, "b", transitive: false)
-    c = start_replica(AWORSet, "c", transitive: false)
+    a = start_replica(AWSet, "a")
+    b = start_replica(AWSet, "b", transitive: false)
+    c = start_replica(AWSet, "c", transitive: false)
     Basic.set_neighbours(a, [b])
     Basic.set_neighbours(b, [c])
     Basic.set_neighbours(c, [])

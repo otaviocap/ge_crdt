@@ -9,7 +9,7 @@ defmodule GeCrdt.ReadmeTest do
   use ExUnit.Case, async: true
 
   alias GeCrdt.AntiEntropy.{Basic, Causal}
-  alias GeCrdt.Types.{AWLWWSet, AWORSet, EWFlag, GCounter, GSet, LexCounter}
+  alias GeCrdt.Types.{AWLWWSet, AWSet, EWFlag, GCounter, GSet, LexCounter}
   alias GeCrdt.Types.{MVReg, ORMap, PNCounter, RWSet, TwoPSet}
   alias GeCrdt.Utils.{DotContext, DotKernel}
 
@@ -32,17 +32,17 @@ defmodule GeCrdt.ReadmeTest do
     end
   end
 
-  test "simple example: add-wins or-set" do
-    sx = AWORSet.new("x")
-    sy = AWORSet.new("y")
+  test "simple example: add-wins" do
+    sx = AWSet.new("x")
+    sy = AWSet.new("y")
 
-    {sx, _} = AWORSet.add(sx, "apple")
-    {sx, _} = AWORSet.remove(sx, "apple")
+    {sx, _} = AWSet.add(sx, "apple")
+    {sx, _} = AWSet.remove(sx, "apple")
 
-    {sy, _} = AWORSet.add(sy, "juice")
-    {sy, _} = AWORSet.add(sy, "apple")
+    {sy, _} = AWSet.add(sy, "juice")
+    {sy, _} = AWSet.add(sy, "apple")
 
-    assert AWORSet.join(sx, sy) |> AWORSet.read() == MapSet.new(["apple", "juice"])
+    assert AWSet.join(sx, sy) |> AWSet.read() == MapSet.new(["apple", "juice"])
   end
 
   test "simple example: remove-wins or-set" do
@@ -168,23 +168,23 @@ defmodule GeCrdt.ReadmeTest do
     assert DotContext.dot_in?(delta.context, {"x", 1})
   end
 
-  test "catalog: AWORSet" do
-    x = AWORSet.new("a")
-    y = AWORSet.new("b")
+  test "catalog: AWSet" do
+    x = AWSet.new("a")
+    y = AWSet.new("b")
 
-    {x, _} = AWORSet.add(x, 3.14)
-    {x, _} = AWORSet.add(x, 2.718)
-    {x, _} = AWORSet.remove(x, 3.14)
-    {y, _} = AWORSet.add(y, 3.14)
+    {x, _} = AWSet.add(x, 3.14)
+    {x, _} = AWSet.add(x, 2.718)
+    {x, _} = AWSet.remove(x, 3.14)
+    {y, _} = AWSet.add(y, 3.14)
 
-    x = AWORSet.join(x, y)
+    x = AWSet.join(x, y)
 
-    assert AWORSet.read(x) == MapSet.new([2.718, 3.14])
+    assert AWSet.read(x) == MapSet.new([2.718, 3.14])
 
-    {x, _} = AWORSet.reset(x)
-    x = AWORSet.join(x, y)
+    {x, _} = AWSet.reset(x)
+    x = AWSet.join(x, y)
 
-    assert AWORSet.read(x) == MapSet.new()
+    assert AWSet.read(x) == MapSet.new()
   end
 
   test "catalog: RWSet" do
@@ -367,19 +367,19 @@ defmodule GeCrdt.ReadmeTest do
 
   test "anti-entropy: Basic forwards delta-groups transitively" do
     {:ok, a} =
-      Basic.start_link(AWORSet, "a",
+      Basic.start_link(AWSet, "a",
         sync_interval: :manual,
         sync_on_mutate: false
       )
 
     {:ok, b} =
-      Basic.start_link(AWORSet, "b",
+      Basic.start_link(AWSet, "b",
         sync_interval: :manual,
         sync_on_mutate: false
       )
 
     {:ok, c} =
-      Basic.start_link(AWORSet, "c",
+      Basic.start_link(AWSet, "c",
         sync_interval: :manual,
         sync_on_mutate: false
       )

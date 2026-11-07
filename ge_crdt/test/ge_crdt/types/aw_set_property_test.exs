@@ -1,11 +1,11 @@
-defmodule GeCrdt.Types.AWORSetPropertyTest do
+defmodule GeCrdt.Types.AWSetPropertyTest do
   use ExUnit.Case, async: true
   use ExUnitProperties
 
   import StreamData
 
   alias GeCrdt.PropertyHelpers, as: H
-  alias GeCrdt.Types.AWORSet
+  alias GeCrdt.Types.AWSet
 
   @ids ["a", "b", "c"]
 
@@ -39,10 +39,10 @@ defmodule GeCrdt.Types.AWORSetPropertyTest do
             v <- member_of(0..4),
             max_runs: H.max_runs()
           ) do
-      state = AWORSet |> H.run(@ids, prefix) |> H.states() |> Map.fetch!("a")
+      state = AWSet |> H.run(@ids, prefix) |> H.states() |> Map.fetch!("a")
       args = if op == :reset, do: [], else: [v]
-      {new_state, delta} = apply(AWORSet, op, [state | args])
-      assert AWORSet.join(state, delta) == new_state
+      {new_state, delta} = apply(AWSet, op, [state | args])
+      assert AWSet.join(state, delta) == new_state
     end
   end
 
@@ -54,33 +54,33 @@ defmodule GeCrdt.Types.AWORSetPropertyTest do
             max_runs: H.max_runs()
           ) do
       ops = H.strip_ids(ops0)
-      states = H.build_all(AWORSet, [{"p1", ops}, {"p2", perm_a}, {"p3", perm_b}])
-      merged = H.merge_all(AWORSet, states)
-      assert H.queries_of(AWORSet, merged) |> Enum.uniq() |> length() == 1
+      states = H.build_all(AWSet, [{"p1", ops}, {"p2", perm_a}, {"p3", perm_b}])
+      merged = H.merge_all(AWSet, states)
+      assert H.queries_of(AWSet, merged) |> Enum.uniq() |> length() == 1
     end
   end
 
   property "replicas converge after gossiping deltas" do
     check all(script <- script_gen(), max_runs: H.max_runs()) do
-      final = AWORSet |> H.run(@ids, script) |> then(&H.mesh(AWORSet, &1, @ids))
-      assert H.converged_queries(AWORSet, final) |> Enum.uniq() |> length() == 1
+      final = AWSet |> H.run(@ids, script) |> then(&H.mesh(AWSet, &1, @ids))
+      assert H.converged_queries(AWSet, final) |> Enum.uniq() |> length() == 1
     end
   end
 
   property "concurrent add wins over remove" do
     check all({v, w} <- distinct_pair_gen(), max_runs: H.max_runs()) do
-      x = AWORSet.new("x")
-      {x, _} = AWORSet.add(x, v)
-      {x, _} = AWORSet.remove(x, v)
+      x = AWSet.new("x")
+      {x, _} = AWSet.add(x, v)
+      {x, _} = AWSet.remove(x, v)
 
-      y = AWORSet.new("y")
-      {y, _} = AWORSet.add(y, w)
-      {y, _} = AWORSet.add(y, v)
+      y = AWSet.new("y")
+      {y, _} = AWSet.add(y, w)
+      {y, _} = AWSet.add(y, v)
 
-      merged = AWORSet.join(x, y)
+      merged = AWSet.join(x, y)
 
-      assert AWORSet.read(merged) == MapSet.new([v, w])
-      assert AWORSet.read(AWORSet.join(merged, x)) == AWORSet.read(AWORSet.join(merged, y))
+      assert AWSet.read(merged) == MapSet.new([v, w])
+      assert AWSet.read(AWSet.join(merged, x)) == AWSet.read(AWSet.join(merged, y))
     end
   end
 
@@ -92,9 +92,9 @@ defmodule GeCrdt.Types.AWORSetPropertyTest do
           _, acc -> acc
         end)
 
-      final = ops |> then(&H.run(AWORSet, @ids, &1)) |> then(&H.mesh(AWORSet, &1, @ids))
+      final = ops |> then(&H.run(AWSet, @ids, &1)) |> then(&H.mesh(AWSet, &1, @ids))
 
-      assert Enum.all?(H.converged_queries(AWORSet, final), &MapSet.subset?(&1, added))
+      assert Enum.all?(H.converged_queries(AWSet, final), &MapSet.subset?(&1, added))
     end
   end
 end
