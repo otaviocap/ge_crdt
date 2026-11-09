@@ -2,6 +2,7 @@ defmodule GeCrdt.Utils.DotContextTest do
   use ExUnit.Case, async: true
   use ExUnitProperties
 
+  alias GeCrdt.PropertyHelpers, as: H
   alias GeCrdt.Utils.DotContext
 
   defp replica_gen, do: StreamData.member_of([:a, :b, :c])
@@ -209,7 +210,8 @@ defmodule GeCrdt.Utils.DotContextTest do
   property "make_dot n times yields dots 1..n, all covered" do
     check all(
             id <- replica_gen(),
-            n <- StreamData.integer(1..20)
+            n <- StreamData.integer(1..20),
+            max_runs: H.max_runs()
           ) do
       {_dots, ctx} =
         Enum.reduce(1..max(n, 1)//1, {[], DotContext.new()}, fn _, {dots, c} ->
@@ -230,7 +232,8 @@ defmodule GeCrdt.Utils.DotContextTest do
   property "inserted dot is always covered (compact or not)" do
     check all(
             dot <- dot_gen(),
-            compact_now <- StreamData.boolean()
+            compact_now <- StreamData.boolean(),
+            max_runs: H.max_runs()
           ) do
       ctx = DotContext.insert_dot(DotContext.new(), dot, compact_now)
       assert DotContext.dot_in?(ctx, dot)
@@ -238,7 +241,7 @@ defmodule GeCrdt.Utils.DotContextTest do
   end
 
   property "compact is idempotent for arbitrary dot sets" do
-    check all(dots <- StreamData.list_of(dot_gen(), max_length: 15)) do
+    check all(dots <- StreamData.list_of(dot_gen(), max_length: 15), max_runs: H.max_runs()) do
       ctx = Enum.reduce(dots, DotContext.new(), &DotContext.insert_dot(&2, &1, false))
       once = DotContext.compact(ctx)
       assert DotContext.compact(once) == once
@@ -246,7 +249,10 @@ defmodule GeCrdt.Utils.DotContextTest do
   end
 
   property "every inserted dot survives compact (is still covered)" do
-    check all(dots <- StreamData.list_of(dot_gen(), min_length: 1, max_length: 15)) do
+    check all(
+            dots <- StreamData.list_of(dot_gen(), min_length: 1, max_length: 15),
+            max_runs: H.max_runs()
+          ) do
       ctx = Enum.reduce(dots, DotContext.new(), &DotContext.insert_dot(&2, &1, false))
       compacted = DotContext.compact(ctx)
 
@@ -264,7 +270,8 @@ defmodule GeCrdt.Utils.DotContextTest do
             order <-
               StreamData.bind(StreamData.constant(n), fn k ->
                 Enum.shuffle(1..k//1) |> StreamData.constant()
-              end)
+              end),
+            max_runs: H.max_runs()
           ) do
       ctx =
         Enum.reduce(order, DotContext.new(), fn i, acc ->
@@ -281,7 +288,8 @@ defmodule GeCrdt.Utils.DotContextTest do
     check all(
             a <- context_gen(),
             b <- context_gen(),
-            c <- context_gen()
+            c <- context_gen(),
+            max_runs: H.max_runs()
           ) do
       assert DotContext.join(a, b) == DotContext.join(b, a)
       assert DotContext.join(a, a) == a
@@ -295,7 +303,8 @@ defmodule GeCrdt.Utils.DotContextTest do
     check all(
             a <- context_gen(),
             b <- context_gen(),
-            dot <- dot_gen()
+            dot <- dot_gen(),
+            max_runs: H.max_runs()
           ) do
       joined = DotContext.join(a, b)
 
@@ -309,7 +318,8 @@ defmodule GeCrdt.Utils.DotContextTest do
     check all(
             a <- context_gen(),
             b <- context_gen(),
-            id <- replica_gen()
+            id <- replica_gen(),
+            max_runs: H.max_runs()
           ) do
       joined = DotContext.join(a, b)
 
@@ -319,7 +329,7 @@ defmodule GeCrdt.Utils.DotContextTest do
   end
 
   property "join_all folds like Enum.reduce(join)" do
-    check all(ctxs <- StreamData.list_of(context_gen(), max_length: 6)) do
+    check all(ctxs <- StreamData.list_of(context_gen(), max_length: 6), max_runs: H.max_runs()) do
       assert DotContext.join_all(ctxs) ==
                Enum.reduce(ctxs, DotContext.new(), &DotContext.join(&2, &1))
     end

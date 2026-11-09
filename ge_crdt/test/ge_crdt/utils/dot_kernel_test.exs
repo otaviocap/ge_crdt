@@ -2,6 +2,7 @@ defmodule GeCrdt.Utils.DotKernelTest do
   use ExUnit.Case, async: true
   use ExUnitProperties
 
+  alias GeCrdt.PropertyHelpers, as: H
   alias GeCrdt.Utils.{DotContext, DotKernel}
 
   defp replica_gen, do: StreamData.member_of([:a, :b, :c])
@@ -242,7 +243,8 @@ defmodule GeCrdt.Utils.DotKernelTest do
     check all(
             k <- kernel_gen(),
             id <- replica_gen(),
-            v <- value_gen()
+            v <- value_gen(),
+            max_runs: H.max_runs()
           ) do
       size_before = map_size(k.dot_store)
       {k2, delta} = DotKernel.add(k, id, v)
@@ -258,7 +260,8 @@ defmodule GeCrdt.Utils.DotKernelTest do
     check all(
             k <- kernel_gen(),
             id <- replica_gen(),
-            v <- value_gen()
+            v <- value_gen(),
+            max_runs: H.max_runs()
           ) do
       {k2, delta} = DotKernel.add(k, id, v)
       [fresh] = Map.keys(delta.dot_store) -- Map.keys(k.dot_store)
@@ -273,7 +276,8 @@ defmodule GeCrdt.Utils.DotKernelTest do
   property "remove_dot drops the dot and the delta context covers it" do
     check all(
             k <- kernel_gen(),
-            dot <- dot_gen()
+            dot <- dot_gen(),
+            max_runs: H.max_runs()
           ) do
       {k2, delta} = DotKernel.remove_dot(k, dot)
 
@@ -292,7 +296,8 @@ defmodule GeCrdt.Utils.DotKernelTest do
   property "remove_value drops exactly the matching entries" do
     check all(
             k <- kernel_gen(),
-            v <- value_gen()
+            v <- value_gen(),
+            max_runs: H.max_runs()
           ) do
       {k2, _delta} = DotKernel.remove_value(k, v)
       assert Enum.all?(DotKernel.values(k2), &(&1 != v))
@@ -305,7 +310,7 @@ defmodule GeCrdt.Utils.DotKernelTest do
   end
 
   property "remove_all empties the store but keeps causal history" do
-    check all(k <- kernel_gen()) do
+    check all(k <- kernel_gen(), max_runs: H.max_runs()) do
       {k2, delta} = DotKernel.remove_all(k)
       assert k2.dot_store == %{}
       assert k2.context == k.context
@@ -320,7 +325,7 @@ defmodule GeCrdt.Utils.DotKernelTest do
   end
 
   property "join with empty is identity and join is idempotent" do
-    check all(k <- kernel_gen()) do
+    check all(k <- kernel_gen(), max_runs: H.max_runs()) do
       assert DotKernel.join(k, DotKernel.new()) == k
       assert DotKernel.join(DotKernel.new(), k) == k
       assert DotKernel.join(k, k) == k
@@ -332,7 +337,8 @@ defmodule GeCrdt.Utils.DotKernelTest do
     check all(
             a <- kernel_gen(),
             b <- kernel_gen(),
-            c <- kernel_gen()
+            c <- kernel_gen(),
+            max_runs: H.max_runs()
           ) do
       assert DotKernel.join(DotKernel.join(a, b), c) == DotKernel.join(a, DotKernel.join(b, c))
 
@@ -343,7 +349,8 @@ defmodule GeCrdt.Utils.DotKernelTest do
   property "join keeps every dot unseen by the other side" do
     check all(
             a <- kernel_gen(),
-            b <- kernel_gen()
+            b <- kernel_gen(),
+            max_runs: H.max_runs()
           ) do
       joined = DotKernel.join(a, b)
 
@@ -358,7 +365,7 @@ defmodule GeCrdt.Utils.DotKernelTest do
   end
 
   property "dots/values mirror the store" do
-    check all(k <- kernel_gen()) do
+    check all(k <- kernel_gen(), max_runs: H.max_runs()) do
       assert Enum.sort(DotKernel.dots(k)) == Enum.sort(Map.keys(k.dot_store))
       assert Enum.sort(DotKernel.values(k)) == Enum.sort(Map.values(k.dot_store))
     end
@@ -367,7 +374,8 @@ defmodule GeCrdt.Utils.DotKernelTest do
   property "concurrent adds from disjoint replica sets converge under join" do
     check all(
             ops_a <- StreamData.list_of(value_gen(), max_length: 5),
-            ops_b <- StreamData.list_of(value_gen(), max_length: 5)
+            ops_b <- StreamData.list_of(value_gen(), max_length: 5),
+            max_runs: H.max_runs()
           ) do
       ka =
         Enum.reduce(ops_a, DotKernel.new(), fn v, acc -> elem(DotKernel.add(acc, :a, v), 0) end)
